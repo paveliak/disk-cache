@@ -29,7 +29,7 @@ echo "dm-cache-ramdisk: Cache per mount: $((CACHE_SIZE_KB / 1024)) MB"
 
 echo "Loading modules"
 echo "Loading brd"
-modprobe brd rd_nr=1 rd_size=$((CACHE_SIZE_KB * 1024))
+modprobe -v -s brd rd_nr=1 rd_size=$((CACHE_SIZE_KB * 1024))
 echo "Loading dm-cache"
 modprobe dm-cache
 echo "Loading dm-cache-smq"
