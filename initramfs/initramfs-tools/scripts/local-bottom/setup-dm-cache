@@ -18,9 +18,9 @@ esac
 
 echo "dm-cache-ramdisk: Starting..."
 
-# Calculate 10% of total RAM in KB
+# Calculate 25% of total RAM in KB
 TOTAL_RAM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-CACHE_SIZE_KB=$((TOTAL_RAM_KB / 10))
+CACHE_SIZE_KB=$((TOTAL_RAM_KB / 4))
 META_SIZE_KB=$((CACHE_SIZE_KB / 100))
 DATA_SIZE_KB=$((CACHE_SIZE_KB - META_SIZE_KB))
 
