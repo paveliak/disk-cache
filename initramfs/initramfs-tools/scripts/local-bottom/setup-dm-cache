@@ -27,7 +27,8 @@ DATA_SIZE_KB=$((CACHE_SIZE_KB - META_SIZE_KB))
 echo "dm-cache-ramdisk: Total RAM: $((TOTAL_RAM_KB / 1024)) MB"
 echo "dm-cache-ramdisk: Cache per mount: $((CACHE_SIZE_KB / 1024)) MB"
 
-modprobe -v -s brd rd_nr=1 rd_size=$CACHE_SIZE_KB
+modprobe -r brd || true
+modprobe brd rd_nr=1 rd_size=$CACHE_SIZE_KB
 modprobe dm-cache
 modprobe dm-cache-smq
 
