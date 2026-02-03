@@ -12,3 +12,4 @@ fi
 apt-get update
 apt-get install -y initramfs-tools
 cp -r "$SCRIPTPATH/initramfs-tools" /usr/share
+echo brd | sudo tee -a /etc/initramfs-tools/modules
