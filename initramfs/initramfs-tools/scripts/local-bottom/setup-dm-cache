@@ -27,16 +27,9 @@ DATA_SIZE_KB=$((CACHE_SIZE_KB - META_SIZE_KB))
 echo "dm-cache-ramdisk: Total RAM: $((TOTAL_RAM_KB / 1024)) MB"
 echo "dm-cache-ramdisk: Cache per mount: $((CACHE_SIZE_KB / 1024)) MB"
 
-echo "Loading modules"
-echo "Loading brd"
-modprobe -v -s brd rd_nr=1 rd_size=$((CACHE_SIZE_KB * 1024))
-echo "Loading dm-cache"
+modprobe -v -s brd rd_nr=1 rd_size=$CACHE_SIZE_KB
 modprobe dm-cache
-echo "Loading dm-cache-smq"
 modprobe dm-cache-smq
-echo "Done loading modules"
-
-ls -al /dev/ram*
 
 sleep 1
 
@@ -51,10 +44,9 @@ dmsetup create "cache-data-root" --table "0 $DATA_SECTORS linear /dev/ram0 $META
 ROOT_DEV=$(readlink -f /dev/disk/by-label/cloudimg-rootfs)
 ROOT_SECTORS=$(blockdev --getsz "$ROOT_DEV")
 
-dmsetup create "cached-root" --table "0 $ROOT_SECTORS cache /dev/mapper/cache-meta-root /dev/mapper/cache-data-root $ROOT_DEV 256 1 writeback smq 2 migration_threshold 100"
-
-echo "Remounting root"
+echo "Remounting root for $ROOT_DEV"
 umount /root
+dmsetup create "cached-root" --table "0 $ROOT_SECTORS cache /dev/mapper/cache-meta-root /dev/mapper/cache-data-root $ROOT_DEV 256 1 writeback smq 2 migration_threshold 100"
 mount /dev/mapper/cached-root "${rootmnt?}"
 
 dmsetup status "cached-root"
