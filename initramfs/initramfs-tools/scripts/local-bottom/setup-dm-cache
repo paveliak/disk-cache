@@ -25,12 +25,14 @@ META_SIZE_KB=$((CACHE_SIZE_KB / 100))
 DATA_SIZE_KB=$((CACHE_SIZE_KB - META_SIZE_KB))
 
 echo "dm-cache-ramdisk: Total RAM: $((TOTAL_RAM_KB / 1024)) MB"
-echo "dm-cache-ramdisk: Cache per mount: $((CACHE_PER_MOUNT_KB / 1024)) MB"
+echo "dm-cache-ramdisk: Cache per mount: $((CACHE_SIZE_KB / 1024)) MB"
 
-# Load modules
+echo "Loading modules"
 modprobe brd rd_nr=1 rd_size=$((CACHE_SIZE_KB * 1024))
 modprobe dm-cache
 modprobe dm-cache-smq
+
+ls -al /dev/ram*
 
 sleep 1
 
@@ -38,6 +40,7 @@ sleep 1
 META_SECTORS=$((META_SIZE_KB * 2))
 DATA_SECTORS=$((DATA_SIZE_KB * 2))
 
+echo "Creating dm-cache"
 dmsetup create "cache-meta-root" --table "0 $META_SECTORS linear /dev/ram0 0"
 dmsetup create "cache-data-root" --table "0 $DATA_SECTORS linear /dev/ram0 $META_SECTORS"
 
@@ -46,6 +49,7 @@ ROOT_SECTORS=$(blockdev --getsz "$ROOT_DEV")
 
 dmsetup create "cached-root" --table "0 $ROOT_SECTORS cache /dev/mapper/cache-meta-root /dev/mapper/cache-data-root $ROOT_DEV 256 1 writeback smq 2 migration_threshold 100"
 
+echo "Remounting root"
 umount /root
 mount /dev/mapper/cached-root "${rootmnt?}"
 
