@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -e
+
+PREREQ=""
+
+prereqs()
+{
+	echo "${PREREQ}"
+}
+
+case "${1}" in
+	prereqs)
+		prereqs
+		exit 0
+		;;
+esac
+
+echo "dm-writecache-ramdisk: Starting..."
+
+# Calculate 25% of total RAM in KB
+TOTAL_RAM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+CACHE_SIZE_KB=$((TOTAL_RAM_KB / 4))
+
+echo "dm-writecache-ramdisk: Total RAM: $((TOTAL_RAM_KB / 1024)) MB"
+echo "dm-writecache-ramdisk: Cache per mount: $((CACHE_SIZE_KB / 1024)) MB"
+
+echo "Configuring zram: zram0=$CACHE_SIZE_KB"
+modprobe -r zram
+modprobe zram num_devices=1
+echo zstd > /sys/block/zram0/comp_algorithm
+echo "${CACHE_SIZE_KB}K" > /sys/block/zram0/disksize
+
+echo "Loading DM-WriteCache"
+modprobe dm-writecache
+
+sleep 1
+
+ROOT_DEV=$(readlink -f /dev/disk/by-label/cloudimg-rootfs)
+ROOT_SECTORS=$(blockdev --getsz "$ROOT_DEV")
+ROOT_SECTORS_ADJ=$((ROOT_SECTORS & ~7))
+
+echo "Remounting root for $ROOT_DEV, $ROOT_SECTORS -> $ROOT_SECTORS_ADJ"
+umount /root
+dmsetup create "cached-root" --table "0 $ROOT_SECTORS_ADJ writecache $ROOT_DEV /dev/zram0 256 0"
+mount /dev/mapper/cached-root "${rootmnt?}"
+
+dmsetup status "cached-root"
+
+echo "dm-cache-ramdisk: Setup complete"
