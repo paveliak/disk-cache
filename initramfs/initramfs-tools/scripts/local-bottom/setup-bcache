@@ -16,7 +16,8 @@ case "${1}" in
 		;;
 esac
 
-echo "bcache-ramdisk: Starting..."
+echo "bcache-ramdisk: DISABLED..."
+exit 0
 
 # Calculate 25% of total RAM in KB
 TOTAL_RAM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
