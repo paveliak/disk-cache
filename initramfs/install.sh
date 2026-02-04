@@ -11,5 +11,7 @@ fi
 
 apt-get update
 apt-get install -y initramfs-tools
+apt-get install -y linux-modules-extra-$(uname -r)
 cp -r "$SCRIPTPATH/initramfs-tools" /usr/share
 echo brd | sudo tee -a /etc/initramfs-tools/modules
+echo zram | sudo tee -a /etc/initramfs-tools/modules
