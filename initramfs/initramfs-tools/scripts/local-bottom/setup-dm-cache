@@ -16,6 +16,9 @@ case "${1}" in
 		;;
 esac
 
+echo "dm-cache is disabled"
+exit 0
+
 echo "dm-cache-ramdisk: Starting..."
 
 # Calculate 25% of total RAM in KB
