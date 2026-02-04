@@ -54,7 +54,7 @@ ROOT_SECTORS_ADJ=$((ROOT_SECTORS & ~7))
 
 echo "Remounting root for $ROOT_DEV, $ROOT_SECTORS -> $ROOT_SECTORS_ADJ"
 umount /root
-dmsetup create "cached-root" --table "0 $ROOT_SECTORS cache /dev/mapper/cache-meta-root /dev/mapper/cache-data-root $ROOT_DEV 8 1 writeback smq 2 migration_threshold 100"
+dmsetup create "cached-root" --table "0 $ROOT_SECTORS cache /dev/mapper/cache-meta-root /dev/mapper/cache-data-root $ROOT_DEV 256 1 writeback smq 2 migration_threshold 100"
 mount /dev/mapper/cached-root "${rootmnt?}"
 
 dmsetup status "cached-root"
