@@ -41,9 +41,8 @@ modprobe dm-cache-smq
 
 sleep 1
 
-# Calculate sizes in 512-byte sectors
-META_SECTORS=$((META_SIZE_KB * 2))
-DATA_SECTORS=$((DATA_SIZE_KB * 2))
+META_SECTORS=$(blockdev --getsz /dev/zram0)
+DATA_SECTORS=$(blockdev --getsz /dev/zram1)
 
 echo "Creating dm-cache"
 dmsetup create "cache-meta-root" --table "0 $META_SECTORS linear /dev/zram0 0"
