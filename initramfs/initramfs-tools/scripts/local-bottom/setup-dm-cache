@@ -28,6 +28,7 @@ echo "dm-cache-ramdisk: Total RAM: $((TOTAL_RAM_KB / 1024)) MB"
 echo "dm-cache-ramdisk: Cache per mount: $((CACHE_SIZE_KB / 1024)) MB"
 
 echo "Configuring zram: zram0=$META_SIZE_KB, zram1=$DATA_SIZE_KB"
+modprobe -r zram
 modprobe zram num_devices=2
 echo zstd > /sys/block/zram0/comp_algorithm
 echo zstd > /sys/block/zram1/comp_algorithm
