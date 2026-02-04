@@ -27,8 +27,14 @@ DATA_SIZE_KB=$((CACHE_SIZE_KB - META_SIZE_KB))
 echo "dm-cache-ramdisk: Total RAM: $((TOTAL_RAM_KB / 1024)) MB"
 echo "dm-cache-ramdisk: Cache per mount: $((CACHE_SIZE_KB / 1024)) MB"
 
-modprobe -r brd || true
-modprobe brd rd_nr=1 rd_size=$CACHE_SIZE_KB
+echo "Configuring zram: zram0=$META_SIZE_KB, zram1=$DATA_SIZE_KB"
+modprobe zram num_devices=2
+echo zstd > /sys/block/zram0/comp_algorithm
+echo zstd > /sys/block/zram1/comp_algorithm
+echo "${META_SIZE_KB}K" > /sys/block/zram0/disksize
+echo "${DATA_SIZE_KB}K" > /sys/block/zram1/disksize
+
+echo "Loading DM-Cache"
 modprobe dm-cache
 modprobe dm-cache-smq
 
@@ -39,8 +45,8 @@ META_SECTORS=$((META_SIZE_KB * 2))
 DATA_SECTORS=$((DATA_SIZE_KB * 2))
 
 echo "Creating dm-cache"
-dmsetup create "cache-data-root" --table "0 $DATA_SECTORS linear /dev/ram0 $META_SECTORS"
-dmsetup create "cache-meta-root" --table "0 $META_SECTORS linear /dev/ram0 0"
+dmsetup create "cache-meta-root" --table "0 $META_SECTORS linear /dev/zram0 0"
+dmsetup create "cache-data-root" --table "0 $DATA_SECTORS linear /dev/zram1 0"
 
 ROOT_DEV=$(readlink -f /dev/disk/by-label/cloudimg-rootfs)
 ROOT_SECTORS=$(blockdev --getsz "$ROOT_DEV")
@@ -48,7 +54,7 @@ ROOT_SECTORS_ADJ=$((ROOT_SECTORS & ~7))
 
 echo "Remounting root for $ROOT_DEV, $ROOT_SECTORS -> $ROOT_SECTORS_ADJ"
 umount /root
-dmsetup create "cached-root" --table "0 $ROOT_SECTORS_ADJ cache /dev/mapper/cache-meta-root /dev/mapper/cache-data-root $ROOT_DEV 256 1 writeback smq 2 migration_threshold 100"
+dmsetup create "cached-root" --table "0 $ROOT_SECTORS cache /dev/mapper/cache-meta-root /dev/mapper/cache-data-root $ROOT_DEV 8 1 writeback smq 2 migration_threshold 100"
 mount /dev/mapper/cached-root "${rootmnt?}"
 
 dmsetup status "cached-root"
