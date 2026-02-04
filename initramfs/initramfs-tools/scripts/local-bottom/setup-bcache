@@ -16,7 +16,7 @@ case "${1}" in
 		;;
 esac
 
-echo "dm-cache-ramdisk: Starting..."
+echo "bcache-ramdisk: Starting..."
 
 # Calculate 25% of total RAM in KB
 TOTAL_RAM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -49,3 +49,5 @@ echo writeback > /sys/block/bcache0/bcache/cache_mode
 
 echo "Mounting root"
 mount /dev/bcache0 "${rootmnt?}"
+
+echo "bcache-ramdisk: Done!"
